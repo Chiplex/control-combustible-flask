@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Combustible</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Sistema de Control de Combustible</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('main.registro_combustible') }}">Registrar Transferencia</a></li>
+                <li><a href="{{ url_for('transferencias.listar') }}">Ver Transferencias</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="dashboard">
+            <h2>Bienvenido al Sistema de Control de Combustible</h2>
+            <p>Este sistema permite la gestión de transferencias de combustible entre tanques de almacenamiento y consumo.</p>
+            
+            <div class="dashboard-cards">
+                <div class="card">
+                    <h3>Registrar Transferencia</h3>
+                    <p>Registra una nueva transferencia de combustible desde tanques de almacenamiento hacia tanques de consumo.</p>
+                    <a href="{{ url_for('main.registro_combustible') }}" class="btn btn-primary">Ir al Registro</a>
+                </div>
+                
+                <div class="card">
+                    <h3>Ver Transferencias</h3>
+                    <p>Consulta el historial de todas las transferencias realizadas en el sistema.</p>
+                    <a href="{{ url_for('transferencias.listar') }}" class="btn btn-secondary">Ver Historial</a>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2025 Sistema de Control de Combustible. Desarrollo para PythonAnywhere.</p>
+    </footer>
+</body>
+</html>

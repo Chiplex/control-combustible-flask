@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Transacción</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Detalle de Transacción</h1>
+            <nav>
+                <a href="{{ url_for('transferencias.listar') }}" class="btn btn-secondary">Volver al Listado</a>
+                <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Inicio</a>
+            </nav>
+        </header>
+
+        <div class="transaction-detail">
+            <div class="transaction-header">
+                <h2>ID Transacción: {{ transaccion_id }}</h2>
+                {% if transferencias %}
+                <p><strong>Fecha:</strong> {{ transferencias[0].FechaTransferencia.strftime('%d de %B de %Y a las %H:%M') }}</p>
+                <p><strong>Detalles:</strong> {{ transferencias[0].Detalles or 'Sin detalles adicionales' }}</p>
+                {% endif %}
+            </div>
+
+            <div class="transfers-grid">
+                {% for transfer in transferencias %}
+                <div class="transfer-card {{ 'salida' if transfer.Tipo == 'SALIDA' else 'entrada' }}">
+                    <div class="transfer-type">
+                        <h3>
+                            {% if transfer.Tipo == 'SALIDA' %}
+                                🔴 SALIDA
+                            {% else %}
+                                🟢 ENTRADA
+                            {% endif %}
+                        </h3>
+                    </div>
+
+                    <div class="transfer-info">
+                        <div class="info-item">
+                            <label>Tanque:</label>
+                            <span>
+                                {% if transfer.TanqueId in tanques_info %}
+                                    {{ tanques_info[transfer.TanqueId].Codigo }}
+                                    <small>({{ tanques_info[transfer.TanqueId].tipo }})</small>
+                                {% else %}
+                                    {{ transfer.TanqueId }}
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Cantidad:</label>
+                            <span class="cantidad {{ 'negative' if transfer.Cantidad < 0 else 'positive' }}">
+                                {{ "%.2f"|format(transfer.Cantidad|abs) }} L
+                            </span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Responsable:</label>
+                            <span>
+                                {% if transfer.ResponsableId in responsables_info %}
+                                    {{ responsables_info[transfer.ResponsableId].Nombre }}
+                                    <small>(CI: {{ responsables_info[transfer.ResponsableId].CI }})</small>
+                                {% else %}
+                                    {{ transfer.ResponsableId }}
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        {% if transfer.RecepcionId %}
+                        <div class="info-item">
+                            <label>{{ 'Destino:' if transfer.Tipo == 'SALIDA' else 'Origen:' }}</label>
+                            <span>
+                                {% if transfer.RecepcionId in tanques_info %}
+                                    {{ tanques_info[transfer.RecepcionId].Codigo }}
+                                {% else %}
+                                    {{ transfer.RecepcionId }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        <div class="info-item">
+                            <label>Estado:</label>
+                            <span class="badge badge-{{ 'success' if transfer.Estado == 'COMPLETADA' else 'warning' }}">
+                                {{ transfer.Estado }}
+                            </span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Fecha Registro:</label>
+                            <span>{{ transfer.FechaRegistro.strftime('%d/%m/%Y %H:%M:%S') }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="transaction-summary">
+                <h3>Resumen de la Transacción</h3>
+                {% set salida = transferencias|selectattr("Tipo", "equalto", "SALIDA")|list %}
+                {% set entrada = transferencias|selectattr("Tipo", "equalto", "ENTRADA")|list %}
+                
+                {% if salida and entrada %}
+                <div class="summary-flow">
+                    <div class="flow-item">
+                        <strong>Desde:</strong>
+                        {% if salida[0].TanqueId in tanques_info %}
+                            {{ tanques_info[salida[0].TanqueId].Codigo }}
+                        {% else %}
+                            {{ salida[0].TanqueId }}
+                        {% endif %}
+                    </div>
+                    <div class="flow-arrow">➡️</div>
+                    <div class="flow-item">
+                        <strong>Hacia:</strong>
+                        {% if entrada[0].TanqueId in tanques_info %}
+                            {{ tanques_info[entrada[0].TanqueId].Codigo }}
+                        {% else %}
+                            {{ entrada[0].TanqueId }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="summary-amount">
+                    <strong>Cantidad Transferida:</strong> {{ "%.2f"|format(entrada[0].Cantidad) }} L
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .transfers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .transfer-card {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+
+        .transfer-card.salida {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .transfer-card.entrada {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .transfer-type h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.2em;
+        }
+
+        .info-item {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-item label {
+            font-weight: bold;
+            min-width: 100px;
+        }
+
+        .cantidad.negative {
+            color: #dc3545;
+        }
+
+        .cantidad.positive {
+            color: #28a745;
+        }
+
+        .summary-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 20px;
+        }
+
+        .flow-item {
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 5px;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .flow-arrow {
+            font-size: 1.5em;
+        }
+
+        .summary-amount {
+            text-align: center;
+            font-size: 1.2em;
+            margin: 20px 0;
+            padding: 15px;
+            background: #d4edda;
+            border-radius: 5px;
+        }
+    </style>
+</body>
+</html>

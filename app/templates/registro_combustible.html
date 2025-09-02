@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Transferencia de Combustible</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Registro de Transferencia de Combustible</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('main.registro_combustible') }}" method="POST" id="transferForm">
+            <div class="row">
+                <div class="col-md-6">
+                    <h3>Tanque Origen (Almacenamiento)</h3>
+                    <div class="form-group">
+                        <label for="tanque_origen_id">Seleccionar tanque de origen:</label>
+                        <select name="tanque_origen_id" id="tanque_origen_id" class="form-control" required>
+                            <option value="">-- Seleccione tanque origen --</option>
+                            {% for tanque in tanques_origen %}
+                                <option value="{{ tanque.TanqueId }}">
+                                    {{ tanque.Codigo }} ({{ tanque.tipo }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <h3>Tanque Destino (Consumo)</h3>
+                    <div class="form-group">
+                        <label for="tanque_destino_search">Buscar tanque destino:</label>
+                        <div class="autocomplete-container">
+                            <input type="text" id="tanque_destino_search" class="form-control" 
+                                   placeholder="Escriba el código del tanque..." autocomplete="off">
+                            <input type="hidden" name="tanque_destino_id" id="tanque_destino_id" required>
+                            <div id="tanque_destino_suggestions" class="autocomplete-suggestions"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="responsable_search">Responsable:</label>
+                <div class="autocomplete-container">
+                    <input type="text" id="responsable_search" class="form-control" 
+                           placeholder="Escriba el nombre o CI del responsable..." autocomplete="off">
+                    <input type="hidden" name="responsable_id" id="responsable_id" required>
+                    <div id="responsable_suggestions" class="autocomplete-suggestions"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="cantidad">Cantidad (litros):</label>
+                <input type="number" name="cantidad" id="cantidad" class="form-control" 
+                       min="0.01" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="detalles">Detalles adicionales:</label>
+                <textarea name="detalles" id="detalles" class="form-control" rows="3" 
+                          placeholder="Detalles opcionales sobre la transferencia"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Registrar Transferencia</button>
+                <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        document.getElementById('transferForm').addEventListener('submit', function(e) {
+            const origen = document.getElementById('tanque_origen_id').value;
+            const destino = document.getElementById('tanque_destino_id').value;
+            
+            if (!destino) {
+                alert('Debe seleccionar un tanque destino válido');
+                e.preventDefault();
+                return false;
+            }
+            
+            const responsableId = document.getElementById('responsable_id').value;
+            if (!responsableId) {
+                alert('Debe seleccionar un responsable válido');
+                e.preventDefault();
+                return false;
+            }
+            
+            if (origen === destino) {
+                alert('El tanque origen y destino no pueden ser el mismo');
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listado de Transferencias</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Historial de Transferencias</h1>
+            <nav>
+                <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Volver al Inicio</a>
+                <a href="{{ url_for('main.registro_combustible') }}" class="btn btn-primary">Nueva Transferencia</a>
+            </nav>
+        </header>
+
+        <!-- Filtros -->
+        <div class="filtros">
+            <form method="GET" class="filtro-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tipo">Tipo:</label>
+                        <select name="tipo" id="tipo">
+                            <option value="">Todos</option>
+                            <option value="ENTRADA" {{ 'selected' if tipo_filtro == 'ENTRADA' }}>Entrada</option>
+                            <option value="SALIDA" {{ 'selected' if tipo_filtro == 'SALIDA' }}>Salida</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="fecha_desde">Desde:</label>
+                        <input type="date" name="fecha_desde" id="fecha_desde" value="{{ fecha_desde }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="fecha_hasta">Hasta:</label>
+                        <input type="date" name="fecha_hasta" id="fecha_hasta" value="{{ fecha_hasta }}">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <a href="{{ url_for('transferencias.listar') }}" class="btn btn-secondary">Limpiar</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabla de transferencias -->
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>ID Transacción</th>
+                        <th>Tanque</th>
+                        <th>Tipo</th>
+                        <th>Cantidad (L)</th>
+                        <th>Responsable</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transferencia in transferencias %}
+                    <tr class="{{ 'salida' if transferencia.Tipo == 'SALIDA' else 'entrada' }}">
+                        <td>{{ transferencia.FechaTransferencia.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>
+                            <a href="{{ url_for('transferencias.detalle', transaccion_id=transferencia.TransaccionId) }}">
+                                {{ transferencia.TransaccionId[:8] }}...
+                            </a>
+                        </td>
+                        <td>
+                            {% set tanque = transferencia.TanqueId %}
+                            {{ tanque }}
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ 'danger' if transferencia.Tipo == 'SALIDA' else 'success' }}">
+                                {{ transferencia.Tipo }}
+                            </span>
+                        </td>
+                        <td class="{{ 'negative' if transferencia.Cantidad < 0 else 'positive' }}">
+                            {{ "%.2f"|format(transferencia.Cantidad|abs) }}
+                        </td>
+                        <td>{{ transferencia.ResponsableId }}</td>
+                        <td>
+                            <span class="badge badge-{{ 'success' if transferencia.Estado == 'COMPLETADA' else 'warning' }}">
+                                {{ transferencia.Estado }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('transferencias.detalle', transaccion_id=transferencia.TransaccionId) }}" 
+                               class="btn btn-sm btn-info">Ver Detalle</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center">No se encontraron transferencias</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if pagination.pages > 1 %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+                <a href="{{ url_for('transferencias.listar', page=pagination.prev_num, tipo=tipo_filtro, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}">« Anterior</a>
+            {% endif %}
+            
+            {% for page_num in pagination.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num != pagination.page %}
+                        <a href="{{ url_for('transferencias.listar', page=page_num, tipo=tipo_filtro, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}">{{ page_num }}</a>
+                    {% else %}
+                        <strong>{{ page_num }}</strong>
+                    {% endif %}
+                {% else %}
+                    <span>…</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+                <a href="{{ url_for('transferencias.listar', page=pagination.next_num, tipo=tipo_filtro, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}">Siguiente »</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
