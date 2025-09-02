@@ -70,6 +70,7 @@ form {
 form input[type="text"],
 form input[type="number"],
 form input[type="date"],
+form input[type="datetime-local"],
 form select,
 form textarea {
     width: 100%;

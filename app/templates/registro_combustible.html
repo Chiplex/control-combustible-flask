@@ -68,6 +68,12 @@
             </div>
 
             <div class="form-group">
+                <label for="fecha_transferencia">Fecha y hora de transferencia:</label>
+                <input type="datetime-local" name="fecha_transferencia" id="fecha_transferencia" 
+                       class="form-control" required>
+            </div>
+
+            <div class="form-group">
                 <label for="detalles">Detalles adicionales:</label>
                 <textarea name="detalles" id="detalles" class="form-control" rows="3" 
                           placeholder="Detalles opcionales sobre la transferencia"></textarea>
@@ -82,6 +88,22 @@
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
+        // Establecer fecha y hora actual por defecto
+        document.addEventListener('DOMContentLoaded', function() {
+            const fechaInput = document.getElementById('fecha_transferencia');
+            const ahora = new Date();
+            
+            // Formatear fecha y hora para datetime-local (YYYY-MM-DDTHH:MM)
+            const year = ahora.getFullYear();
+            const month = String(ahora.getMonth() + 1).padStart(2, '0');
+            const day = String(ahora.getDate()).padStart(2, '0');
+            const hours = String(ahora.getHours()).padStart(2, '0');
+            const minutes = String(ahora.getMinutes()).padStart(2, '0');
+            
+            const fechaActual = `${year}-${month}-${day}T${hours}:${minutes}`;
+            fechaInput.value = fechaActual;
+        });
+        
         document.getElementById('transferForm').addEventListener('submit', function(e) {
             const origen = document.getElementById('tanque_origen_id').value;
             const destino = document.getElementById('tanque_destino_id').value;

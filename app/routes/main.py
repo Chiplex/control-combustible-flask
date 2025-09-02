@@ -22,6 +22,16 @@ def registro_combustible():
         responsable_id = request.form.get('responsable_id')
         cantidad = Decimal(request.form.get('cantidad'))
         detalles = request.form.get('detalles', '')
+        fecha_transferencia_str = request.form.get('fecha_transferencia')
+        
+        # Convertir la fecha desde el formato HTML datetime-local
+        try:
+            if fecha_transferencia_str:
+                fecha_transferencia = datetime.strptime(fecha_transferencia_str, '%Y-%m-%dT%H:%M')
+            else:
+                fecha_transferencia = datetime.utcnow()
+        except ValueError:
+            fecha_transferencia = datetime.utcnow()
 
         try:
             # Verificar que los tanques existan
@@ -65,7 +75,7 @@ def registro_combustible():
                 Cantidad=-cantidad,  # Cantidad negativa para salida
                 Tipo='SALIDA',
                 Detalles=f"Salida hacia {tanque_destino.Codigo}: {detalles}",
-                FechaTransferencia=datetime.utcnow(),
+                FechaTransferencia=fecha_transferencia,
                 TransaccionId=transaccion_id,
                 Estado='COMPLETADA',
                 UsuarioId='SISTEMA'
@@ -80,7 +90,7 @@ def registro_combustible():
                 Cantidad=cantidad,  # Cantidad positiva para entrada
                 Tipo='ENTRADA',
                 Detalles=f"Entrada desde {tanque_origen.Codigo}: {detalles}",
-                FechaTransferencia=datetime.utcnow(),
+                FechaTransferencia=fecha_transferencia,
                 TransaccionId=transaccion_id,
                 Estado='COMPLETADA',
                 UsuarioId='SISTEMA'
